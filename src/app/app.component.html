@@ -1,21 +1,150 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome to {{ title }}!
-  </h1>
-  <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
+<!-- Modal -->
+<div class="modal fade" id="previewForm" tabindex="-1" role="dialog" aria-labelledby="previewFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewFormModalLabel">Form Preview</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <dynamic-bootstrap-form [group]="previewFormGroup" [model]="previewFormModel"></dynamic-bootstrap-form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
-<h2>Here are some links to help you start: </h2>
-<ul>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://github.com/angular/angular-cli/wiki">CLI Documentation</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-  </li>
-</ul>
+
+
+<div style="text-align:center"><h1>Form Builder</h1></div>
+
+<hr />
+<div class="container">
+    <div [hidden]="!formData">
+        <div class="row">
+            <div class="col-md-12">
+                    <button type="button" (click)="previewForm()" class="btn btn-block" data-toggle="modal" data-target="#previewForm">Preview Form</button>
+            </div>
+        </div>
+        <br />
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+          <p><strong>Form Controls</strong></p>
+            <div class="list-group">
+              <button class="btn" (click)="addTextBox()" class="list-group-item list-group-item-action">Add TextBox</button>
+              <button class="btn" (click)="addTextArea()" class="list-group-item list-group-item-action">Add TextArea</button>
+              <button class="btn" (click)="addCheckbox()" class="list-group-item list-group-item-action">Add Checkbox</button>
+            </div>
+            <br />
+            <div [hidden]="!formData" class="card">
+                <div class="card-body">
+                    <pre>{{formData | json}}</pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Form</strong></p>
+            <form [formGroup]="formGroup">
+                <div cdkDropList #toWatch="cdkDropList" [cdkDropListData]="formModel" (cdkDropListDropped)="drop($event)" class="example-list">
+                    <p [hidden]="formData" style="padding:15px;"><i class="fa fa-arrow-circle-left"></i> Add your form controls by clicking on the buttons to the left</p>
+                    <dynamic-bootstrap-form-control *ngFor="let controlModel of formModel" [group]="formGroup" [model]="controlModel" cdkDrag  class="example-box">
+                        <ng-template modelType="INPUT" let-id="id">
+                            <button (click)="editField(id)" class="btn btn-block mt-1"><i class="fa fa-cogs"></i> Edit Field</button>
+                        </ng-template>
+                        <ng-template modelType="TEXTAREA" let-id="id">
+                            <button (click)="editField(id)" class="btn btn-block mt-1"><i class="fa fa-cogs"></i> Edit Field</button>
+                        </ng-template>
+                        <ng-template modelType="CHECKBOX" let-id="id">
+                            <button (click)="editField(id)" class="btn btn-block mt-1"><i class="fa fa-cogs"></i> Edit Field</button>
+                        </ng-template>
+                    </dynamic-bootstrap-form-control>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <p><strong>Edit Field</strong></p>
+            <div class="card">
+                <div class="card-body">
+                    <ng-template [ngIf]="fieldDataType === 'INPUT'">
+                        <div *ngFor="let item of fieldData | keyvalue; let i=index; trackBy:trackByFn">
+                            <div class="form-group" *ngIf="item.key === 'label'">
+                                <label for="item{{i}}">Label Text</label>
+                                <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === '_value'">
+                                <label for="item{{i}}">Default Value</label>
+                                <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'placeholder'">
+                                <label for="item{{i}}">Placeholder Text</label>
+                                <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'maxLength'">
+                                <label for="item{{i}}">Max Length</label>
+                                <input type="number" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'minLength'">
+                                <label for="item{{i}}">Min Length</label>
+                                <input type="number" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-check" *ngIf="item.key === 'readOnly'">
+                                <input type="checkbox" class="form-check-input" [(ngModel)]="item.value" name="item{{i}}" id="item{{i}}" (input)="updateField(item,fieldData)">
+                                <label class="form-check-label" for="item{{i}}">Read Only</label> 
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template [ngIf]="fieldDataType === 'TEXTAREA'">
+                        <div *ngFor="let item of fieldData | keyvalue; let in=index; trackBy:trackByFn">
+                            <div class="form-group" *ngIf="item.key === 'label'">
+                                <label for="item{{i}}">Label Text</label>
+                                <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === '_value'">
+                                <label for="item{{i}}">Default Value</label>
+                                <textarea class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"></textarea> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'placeholder'">
+                                <label for="item{{i}}">Placeholder Text</label>
+                                <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'maxLength'">
+                                <label for="item{{i}}">Max Length</label>
+                                <input type="number" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-group" *ngIf="item.key === 'minLength'">
+                                <label for="item{{i}}">Min Length</label>
+                                <input type="number" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                            </div>
+                            <div class="form-check" *ngIf="item.key === 'readOnly'">
+                                <input type="checkbox" class="form-check-input" [(ngModel)]="item.value" name="item{{i}}" id="item{{i}}" (input)="updateField(item,fieldData)">
+                                <label for="item{{i}}">Read Only</label> 
+                            </div>
+                        </div>
+                    </ng-template>
+                    <ng-template [ngIf]="fieldDataType === 'CHECKBOX'">
+                            <div *ngFor="let item of fieldData | keyvalue; let i=index; trackBy:trackByFn">
+                                <div class="form-group" *ngIf="item.key === 'label'">
+                                    <label for="item{{i}}">Label Text</label>
+                                    <input type="text" class="form-control" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)"> 
+                                </div>
+                                <div class="form-check" *ngIf="item.key === '_value'">
+                                    <input type="checkbox" class="form-check-input" [(ngModel)]="item.value" id="item{{i}}" name="item{{i}}" (input)="updateField(item,fieldData)">
+                                    <label class="form-check-label" for="item{{i}}">Default Value</label>
+                                    <br /><br />
+                                </div>
+                            </div>
+                        </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
 
 <router-outlet></router-outlet>
